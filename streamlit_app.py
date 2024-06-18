@@ -8,31 +8,9 @@ import altair as alt
 import time
 import zipfile
 
-# Page title
-st.set_page_config(page_title='ML Model Building', page_icon='🤖')
-st.title('🤖 ML Model Building')
+st.set_page_config(page_title='Automation of Data visualization', page_icon='🤖')
+st.title('🤖 Automation of Data visualization')
 
-with st.expander('About this app'):
-  st.markdown('**What can this app do?**')
-  st.info('This app allow users to build a machine learning (ML) model in an end-to-end workflow. Particularly, this encompasses data upload, data pre-processing, ML model building and post-model analysis.')
-
-  st.markdown('**How to use the app?**')
-  st.warning('To engage with the app, go to the sidebar and 1. Select a data set and 2. Adjust the model parameters by adjusting the various slider widgets. As a result, this would initiate the ML model building process, display the model results as well as allowing users to download the generated models and accompanying data.')
-
-  st.markdown('**Under the hood**')
-  st.markdown('Data sets:')
-  st.code('''- Drug solubility data set
-  ''', language='markdown')
-  
-  st.markdown('Libraries used:')
-  st.code('''- Pandas for data wrangling
-- Scikit-learn for building a machine learning model
-- Altair for chart creation
-- Streamlit for user interface
-  ''', language='markdown')
-
-
-# Sidebar for accepting input parameters
 with st.sidebar:
     # Load data
     st.header('1.1. Input data')
@@ -41,8 +19,6 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file, index_col=False)
-      
-    # Download example data
     @st.cache_data
     def convert_df(input_df):
         return input_df.to_csv(index=False).encode('utf-8')
@@ -54,8 +30,6 @@ with st.sidebar:
         file_name='delaney_solubility_with_descriptors.csv',
         mime='text/csv',
     )
-
-    # Select example data
     st.markdown('**1.2. Use example data**')
     example_data = st.toggle('Load example data')
     if example_data:
@@ -80,7 +54,6 @@ with st.sidebar:
 
     sleep_time = st.slider('Sleep time', 0, 3, 0)
 
-# Initiate the model building process
 if uploaded_file or example_data: 
     with st.status("Running ...", expanded=True) as status:
     
@@ -129,19 +102,13 @@ if uploaded_file or example_data:
         st.write("Displaying performance metrics ...")
         time.sleep(sleep_time)
         parameter_criterion_string = ' '.join([x.capitalize() for x in parameter_criterion.split('_')])
-        #if 'Mse' in parameter_criterion_string:
-        #    parameter_criterion_string = parameter_criterion_string.replace('Mse', 'MSE')
         rf_results = pd.DataFrame(['Random forest', train_mse, train_r2, test_mse, test_r2]).transpose()
         rf_results.columns = ['Method', f'Training {parameter_criterion_string}', 'Training R2', f'Test {parameter_criterion_string}', 'Test R2']
-        # Convert objects to numerics
         for col in rf_results.columns:
             rf_results[col] = pd.to_numeric(rf_results[col], errors='ignore')
-        # Round to 3 digits
         rf_results = rf_results.round(3)
-        
     status.update(label="Status", state="complete", expanded=False)
 
-    # Display data info
     st.header('Input data', divider='rainbow')
     col = st.columns(4)
     col[0].metric(label="No. of samples", value=X.shape[0], delta="")
@@ -168,7 +135,6 @@ if uploaded_file or example_data:
             st.markdown('**y**')
             st.dataframe(y_test, height=210, hide_index=True, use_container_width=True)
 
-    # Zip dataset files
     df.to_csv('dataset.csv', index=False)
     X_train.to_csv('X_train.csv', index=False)
     y_train.to_csv('y_train.csv', index=False)
@@ -188,14 +154,12 @@ if uploaded_file or example_data:
                 mime="application/octet-stream"
                 )
     
-    # Display model parameters
     st.header('Model parameters', divider='rainbow')
     parameters_col = st.columns(3)
     parameters_col[0].metric(label="Data split ratio (% for Training Set)", value=parameter_split_size, delta="")
     parameters_col[1].metric(label="Number of estimators (n_estimators)", value=parameter_n_estimators, delta="")
     parameters_col[2].metric(label="Max features (max_features)", value=parameter_max_features_metric, delta="")
     
-    # Display feature importance plot
     importances = rf.feature_importances_
     feature_names = list(X.columns)
     forest_importances = pd.Series(importances, index=feature_names)
@@ -214,7 +178,6 @@ if uploaded_file or example_data:
         st.header('Feature importance', divider='rainbow')
         st.altair_chart(bars, theme='streamlit', use_container_width=True)
 
-    # Prediction results
     st.header('Prediction results', divider='rainbow')
     s_y_train = pd.Series(y_train, name='actual').reset_index(drop=True)
     s_y_train_pred = pd.Series(y_train_pred, name='predicted').reset_index(drop=True)
@@ -230,11 +193,9 @@ if uploaded_file or example_data:
     
     prediction_col = st.columns((2, 0.2, 3))
     
-    # Display dataframe
     with prediction_col[0]:
         st.dataframe(df_prediction, height=320, use_container_width=True)
 
-    # Display scatter plot of actual vs predicted values
     with prediction_col[2]:
         scatter = alt.Chart(df_prediction).mark_circle(size=60).encode(
                         x='actual',
@@ -243,7 +204,5 @@ if uploaded_file or example_data:
                   )
         st.altair_chart(scatter, theme='streamlit', use_container_width=True)
 
-    
-# Ask for CSV upload if none is detected
 else:
-    st.warning('👈 Upload a CSV file or click *"Load example data"* to get started!')
+    st.warning('Upload a CSV file or click *"Load example data"* to get started!')
