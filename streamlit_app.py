@@ -8,7 +8,7 @@ import altair as alt
 import time
 import zipfile
 
-st.set_page_config(page_title='Automation of Data visualization', page_icon='🤖')
+st.set_page_config(page_title='Automation of Data visualization', page_icon='⚙️')
 st.title('🤖 Automation of Data visualization')
 
 with st.sidebar:
